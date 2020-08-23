@@ -35,7 +35,7 @@ func main() {
 			panic(err)
 		}
 		update(db, string(buf))
-	case "serve":
+	case "watch":
 		done := make(chan struct{})
 		signals := make(chan os.Signal)
 		signal.Notify(signals, syscall.SIGINT)
