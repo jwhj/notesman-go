@@ -4,16 +4,19 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 
 	"github.com/boltdb/bolt"
 	"github.com/gin-gonic/gin"
+	"github.com/posener/tarfs"
 )
 
 func bundle() {
@@ -24,7 +27,13 @@ func bundle() {
 func serve(db *bolt.DB) {
 	debug := flag.Bool("d", false, "enable debug mode")
 	flag.CommandLine.Parse(os.Args[2:])
-	r := gin.Default()
+	var r *gin.Engine
+	if *debug {
+		r = gin.Default()
+	} else {
+		// gin.SetMode(gin.ReleaseMode)
+		r = gin.Default()
+	}
 	r.GET("/", func(ctx *gin.Context) {
 		ctx.Redirect(http.StatusPermanentRedirect, "/index")
 	})
@@ -45,7 +54,25 @@ func serve(db *bolt.DB) {
 			homeDir, _ := os.UserHomeDir()
 			uiDir = filepath.Join(homeDir, "noteman-go")
 		}
-		r.Static("/index", uiDir)
+		f, err := tarfs.NewFile(filepath.Join(uiDir, "ui.tar.gz"))
+		if err != nil {
+			panic(err)
+		}
+		r.GET("/index/*filepath", func(ctx *gin.Context) {
+			path := ctx.Param("filepath")
+			if path == "/" {
+				path = "/index.html"
+			}
+			err := f.Open(path[1:])
+			if err != nil {
+				fmt.Println(err)
+				if strings.Contains(err.Error(), "file does not exist") {
+					ctx.String(http.StatusNotFound, "404")
+				}
+				return
+			}
+			io.Copy(ctx.Writer, f)
+		})
 	}
 	api := r.Group("/api")
 	setupAPI(db, api)
