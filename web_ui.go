@@ -31,7 +31,7 @@ func serve(db *bolt.DB) {
 	if *debug {
 		r = gin.Default()
 	} else {
-		// gin.SetMode(gin.ReleaseMode)
+		gin.SetMode(gin.ReleaseMode)
 		r = gin.Default()
 	}
 	r.GET("/", func(ctx *gin.Context) {
