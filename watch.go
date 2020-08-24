@@ -12,7 +12,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-func serve(db *bolt.DB, done chan struct{}) {
+func watch(db *bolt.DB, done chan struct{}) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		panic(err)
@@ -45,6 +45,7 @@ func serve(db *bolt.DB, done chan struct{}) {
 			cmd = exec.Command("git", "commit", "-m", time.Now().String())
 			cmd.Dir = gitDir
 			cmd.Run()
+			log.Println("cleanup finished")
 			return
 		}
 	}

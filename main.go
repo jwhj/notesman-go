@@ -36,14 +36,6 @@ func main() {
 		}
 		update(db, string(buf))
 	case "watch":
-		done := make(chan struct{})
-		signals := make(chan os.Signal)
-		signal.Notify(signals, syscall.SIGINT)
-		go func() {
-			<-signals
-			log.Println("SIGINT received")
-			done <- struct{}{}
-		}()
 		if len(os.Args) > 2 {
 			keys := keys(db)
 			n, err := strconv.Atoi(os.Args[2])
@@ -54,6 +46,16 @@ func main() {
 		} else {
 			ioutil.WriteFile(tmpFile, generate(db, keys(db)), 0600)
 		}
-		serve(db, done)
+		done := make(chan struct{})
+		go func() {
+			signals := make(chan os.Signal)
+			signal.Notify(signals, syscall.SIGINT)
+			<-signals
+			log.Println("SIGINT received")
+			done <- struct{}{}
+		}()
+		watch(db, done)
+	case "ui":
+		serve(db)
 	}
 }

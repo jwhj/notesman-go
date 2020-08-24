@@ -1,0 +1,13 @@
+{
+	"files": [
+		"src/index.tsx",
+		"src/global.d.ts"
+	],
+	"compilerOptions": {
+		"esModuleInterop": true,
+		"target": "ES2018",
+		"moduleResolution": "node",
+		"jsx": "react",
+		"noImplicitAny": true
+	}
+}
