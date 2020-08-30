@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import axios from 'axios'
+import Typed from 'typed.js'
 const {
 	message,
 	Layout,
@@ -15,9 +16,15 @@ const {
 	DownOutlined
 } = icons
 const { Header, Content, Footer } = Layout
+const titleTextList = [
+	'看什么看，记笔记',
+	'你跟上进度了？',
+	'嗯？又开始颓了？'
+]
 const App = () => {
 	const [keysList, setKeysList] = useState<string[]>([])
 	const [selected, setSelected] = useState<boolean[]>([])
+	const typedRef = useRef<Typed>()
 	const allSelected = useMemo(() => {
 		let result = true
 		for (const x of selected) result = result && x
@@ -29,6 +36,19 @@ const App = () => {
 			setSelected(Array(result.data.length).fill(false))
 			console.log(result)
 		})
+		const changeTitleText = () => {
+			const i = Math.floor(Math.random() * titleTextList.length)
+			if (typedRef.current) typedRef.current.destroy()
+			typedRef.current = new Typed('#title', {
+				strings: [titleTextList[i]],
+				typeSpeed: 30
+			})
+		}
+		changeTitleText()
+		const id = setInterval(changeTitleText, 5000)
+		return () => {
+			clearInterval(id);
+		}
 	}, [])
 	useEffect(() => {
 		const handleShortcut = (e: KeyboardEvent) => {
@@ -60,7 +80,7 @@ const App = () => {
 			<Layout style={{ height: '100%' }}>
 				<Header>
 					<h1 style={{ color: 'white' }}>
-						UI就随便吧
+						<span id="title"></span>
 					</h1>
 				</Header>
 				<Content style={{ padding: 10 }}>
