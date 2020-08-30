@@ -24,6 +24,7 @@ const titleTextList = [
 const App = () => {
 	const [keysList, setKeysList] = useState<string[]>([])
 	const [selected, setSelected] = useState<boolean[]>([])
+	const prevIndex = useRef(-1)
 	const typedRef = useRef<Typed>()
 	const allSelected = useMemo(() => {
 		let result = true
@@ -37,8 +38,12 @@ const App = () => {
 			console.log(result)
 		})
 		const changeTitleText = () => {
-			const i = Math.floor(Math.random() * titleTextList.length)
+			let i: number
+			do {
+				i = Math.floor(Math.random() * titleTextList.length)
+			} while (i === prevIndex.current)
 			if (typedRef.current) typedRef.current.destroy()
+			prevIndex.current = i
 			typedRef.current = new Typed('#title', {
 				strings: [titleTextList[i]],
 				typeSpeed: 30
