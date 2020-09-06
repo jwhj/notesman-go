@@ -26,6 +26,7 @@ const App = () => {
 	const [selected, setSelected] = useState<boolean[]>([])
 	const prevIndex = useRef(-1)
 	const typedRef = useRef<Typed>()
+	const handleShortcutRef = useRef<(e: KeyboardEvent) => void>()
 	const allSelected = useMemo(() => {
 		let result = true
 		for (const x of selected) result = result && x
@@ -37,6 +38,10 @@ const App = () => {
 			setSelected(Array(result.data.length).fill(false))
 			console.log(result)
 		})
+		const handleShortcut = (e: KeyboardEvent) => {
+			handleShortcutRef.current(e)
+		}
+		addEventListener('keydown', handleShortcut)
 		const changeTitleText = () => {
 			let i: number
 			do {
@@ -52,25 +57,20 @@ const App = () => {
 		changeTitleText()
 		const id = setInterval(changeTitleText, 5000)
 		return () => {
-			clearInterval(id);
+			removeEventListener('keydown', handleShortcut)
+			clearInterval(id)
 		}
 	}, [])
-	useEffect(() => {
-		const handleShortcut = (e: KeyboardEvent) => {
-			switch (e.key) {
-				case 'a':
-					selectAllOrClear()
-					break
-				case 'g':
-					generate()
-					break
-			}
+	handleShortcutRef.current = (e: KeyboardEvent) => {
+		switch (e.key) {
+			case 'a':
+				selectAllOrClear()
+				break
+			case 'g':
+				generate()
+				break
 		}
-		addEventListener('keydown', handleShortcut)
-		return () => {
-			removeEventListener('keydown', handleShortcut)
-		}
-	}, [selected])
+	}
 	const selectAllOrClear = () => {
 		setSelected(Array(selected.length).fill(!allSelected.valueOf()))
 	}
