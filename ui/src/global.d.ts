@@ -1,4 +1,4 @@
-declare const ReactDOM: any
+declare const ReactDOM: any, L2Dwidget: any
 type StyleType = import('react').CSSProperties
 declare namespace abcd {
 	interface _ComponentType {

@@ -16,16 +16,9 @@ const {
 	DownOutlined
 } = icons
 const { Header, Content, Footer } = Layout
-const titleTextList = [
-	'看什么看，记笔记',
-	'你跟上进度了？',
-	'嗯？又开始颓了？'
-]
 const App = () => {
 	const [keysList, setKeysList] = useState<string[]>([])
 	const [selected, setSelected] = useState<boolean[]>([])
-	const prevIndex = useRef(-1)
-	const typedRef = useRef<Typed>()
 	const handleShortcutRef = useRef<(e: KeyboardEvent) => void>()
 	const allSelected = useMemo(() => {
 		let result = true
@@ -42,23 +35,8 @@ const App = () => {
 			handleShortcutRef.current(e)
 		}
 		addEventListener('keydown', handleShortcut)
-		const changeTitleText = () => {
-			let i: number
-			do {
-				i = Math.floor(Math.random() * titleTextList.length)
-			} while (i === prevIndex.current)
-			if (typedRef.current) typedRef.current.destroy()
-			prevIndex.current = i
-			typedRef.current = new Typed('#title', {
-				strings: [titleTextList[i]],
-				typeSpeed: 30
-			})
-		}
-		changeTitleText()
-		const id = setInterval(changeTitleText, 5000)
 		return () => {
 			removeEventListener('keydown', handleShortcut)
-			clearInterval(id)
 		}
 	}, [])
 	handleShortcutRef.current = (e: KeyboardEvent) => {
@@ -85,7 +63,7 @@ const App = () => {
 			<Layout style={{ height: '100%' }}>
 				<Header>
 					<h1 style={{ color: 'white' }}>
-						<span id="title"></span>
+						用心写代码，用脚做UI
 					</h1>
 				</Header>
 				<Content style={{ padding: 10 }}>
@@ -131,7 +109,7 @@ const App = () => {
 					</Row>
 				</Content>
 				<Footer>
-					UI是随便搞的
+					随便写几个字，反正不能空着
 				</Footer>
 			</Layout>
 		</React.Fragment>
@@ -141,3 +119,60 @@ ReactDOM.render(
 	<App />,
 	document.querySelector('#app')
 )
+L2Dwidget.init({
+	model: {
+		jsonPath: "https://cdn.jsdelivr.net/npm/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json",
+		scale: 1
+	},
+	// "display": {
+	// 	"position": "right",
+	// 	"width": 150,
+	// 	"height": 300,
+	// 	"hOffset": 0,
+	// 	"vOffset": -20
+	// },
+	// "mobile": {
+	// 	"show": true,
+	// 	"scale": 0.5
+	// },
+	// "react": {
+	// 	"opacityDefault": 0.7,
+	// 	"opacityOnHover": 0.2
+	// },
+	dialog: {
+		enable: true,
+		script: {
+			"every idle 1s": ''
+		}
+	}
+})
+const titleTextList = [
+	'看什么看，记笔记',
+	'你跟上进度了？',
+	'嗯？又开始颓了？'
+]
+setTimeout(() => {
+	const el: HTMLElement = document.querySelector('.live2d-widget-dialog')
+	el.style.display = 'none'
+	const el1 = document.createElement('div')
+	el1.className = 'live2d-widget-dialog'
+	el1.style.opacity = '1'
+	el1.innerHTML = `<span id="title"></span>`
+	el.parentElement.appendChild(el1)
+	let prevIndex = -1
+	let typedRef: Typed
+	const changeTitleText = () => {
+		let i: number
+		do {
+			i = Math.floor(Math.random() * titleTextList.length)
+		} while (i === prevIndex)
+		if (typedRef) typedRef.destroy()
+		prevIndex = i
+		typedRef = new Typed('#title', {
+			strings: [titleTextList[i]],
+			typeSpeed: 30
+		})
+	}
+	changeTitleText()
+	setInterval(changeTitleText, 60000)
+}, 500)
