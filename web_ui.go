@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -95,6 +96,7 @@ func setupAPI(db *bolt.DB, r *gin.RouterGroup) {
 		signals := make(chan os.Signal)
 		signal.Notify(signals, syscall.SIGINT)
 		<-signals
+		log.Println("SIGINT received")
 		done()
 		<-cleanupDone
 		os.Exit(0)
