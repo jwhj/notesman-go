@@ -97,8 +97,10 @@ func setupAPI(db *bolt.DB, r *gin.RouterGroup) {
 		signal.Notify(signals, syscall.SIGINT)
 		<-signals
 		log.Println("SIGINT received")
-		done()
-		<-cleanupDone
+		if done != nil {
+			done()
+			<-cleanupDone
+		}
 		os.Exit(0)
 	}()
 	r.POST("/generate", func(ctx *gin.Context) {
