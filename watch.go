@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"io/ioutil"
 	"log"
 	"os"
@@ -12,7 +13,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-func watch(db *bolt.DB, done chan struct{}) {
+func watch(db *bolt.DB, ctx context.Context) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		panic(err)
@@ -35,7 +36,7 @@ func watch(db *bolt.DB, done chan struct{}) {
 			}
 		case err := <-watcher.Errors:
 			panic(err)
-		case <-done:
+		case <-ctx.Done():
 			log.Println("cleaning up")
 			ioutil.WriteFile(filepath.Join(gitDir, "notes.md"), generate(db, keys(db)), 0600)
 			os.Rename(tmpFile, "tmp.bak")

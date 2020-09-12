@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"io/ioutil"
 	"log"
@@ -46,15 +47,15 @@ func main() {
 		} else {
 			ioutil.WriteFile(tmpFile, generate(db, keys(db)), 0600)
 		}
-		done := make(chan struct{})
+		ctxDone, done := context.WithCancel(context.Background())
 		go func() {
 			signals := make(chan os.Signal)
 			signal.Notify(signals, syscall.SIGINT)
 			<-signals
 			log.Println("SIGINT received")
-			done <- struct{}{}
+			done()
 		}()
-		watch(db, done)
+		watch(db, ctxDone)
 	case "ui":
 		serve(db)
 	}

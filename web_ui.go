@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -88,23 +89,21 @@ func setupAPI(db *bolt.DB, r *gin.RouterGroup) {
 		result, _ := json.Marshal(keysInString)
 		ctx.Writer.Write(result)
 	})
-	done := make(chan struct{})
+	var done context.CancelFunc
 	cleanupDone := make(chan struct{})
-	go func() {
-		<-done
-		cleanupDone <- struct{}{}
-	}()
 	go func() {
 		signals := make(chan os.Signal)
 		signal.Notify(signals, syscall.SIGINT)
 		<-signals
-		done <- struct{}{}
+		done()
 		<-cleanupDone
 		os.Exit(0)
 	}()
 	r.POST("/generate", func(ctx *gin.Context) {
-		done <- struct{}{}
-		<-cleanupDone
+		if done != nil {
+			done()
+			<-cleanupDone
+		}
 		var keysInString []string
 		err := ctx.BindJSON(&keysInString)
 		if err != nil {
@@ -117,7 +116,9 @@ func setupAPI(db *bolt.DB, r *gin.RouterGroup) {
 		}
 		ioutil.WriteFile(tmpFile, generate(db, keys), 0600)
 		go func() {
-			watch(db, done)
+			var ctxDone context.Context
+			ctxDone, done = context.WithCancel(context.Background())
+			watch(db, ctxDone)
 			cleanupDone <- struct{}{}
 		}()
 		ctx.String(http.StatusOK, "ok")
