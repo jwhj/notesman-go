@@ -26,23 +26,22 @@ const App = () => {
 		return result
 	}, [selected])
 	useEffect(() => {
-		axios.get('/api/keys').then(result => {
-			const tmpList: string[] = result.data.slice()
-			axios.get('/api/selected_keys').then(result => {
-				setKeysList(tmpList)
-				// setSelected(Array(tmpList.length).fill(false))
-				const selected: boolean[] = Array(tmpList.length).fill(false)
-				const selectedKeys: string[] = result.data
-				let i = 0
-				for (let j = 0; j < selectedKeys.length; j++) {
-					while (i < tmpList.length && tmpList[i] < selectedKeys[j])
-						i++
-					if (i < tmpList.length && tmpList[i] == selectedKeys[j])
-						selected[i] = true
-				}
-				setSelected(selected)
-			})
-			// console.log(result)
+		Promise.all([
+			axios.get('/api/keys'),
+			axios.get('/api/selected_keys')
+		]).then(([result1, result2]) => {
+			const tmpList: string[] = result1.data.slice()
+			setKeysList(tmpList)
+			const selected: boolean[] = Array(tmpList.length).fill(false)
+			const selectedKeys: string[] = result2.data
+			let i = 0
+			for (let j = 0; j < selectedKeys.length; j++) {
+				while (i < tmpList.length && tmpList[i] < selectedKeys[j])
+					i++
+				if (i < tmpList.length && tmpList[i] == selectedKeys[j])
+					selected[i] = true
+			}
+			setSelected(selected)
 		})
 		const handleShortcut = (e: KeyboardEvent) => {
 			handleShortcutRef.current(e)
