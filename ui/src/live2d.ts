@@ -5,6 +5,9 @@ export const renderLive2D = () => {
 			jsonPath: "https://cdn.jsdelivr.net/npm/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json",
 			scale: 1
 		},
+		display: {
+			vOffset: -95
+		},
 		// "display": {
 		// 	"position": "right",
 		// 	"width": 150,
