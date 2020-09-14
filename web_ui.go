@@ -103,19 +103,26 @@ func setupAPI(db *bolt.DB, r *gin.RouterGroup) {
 		}
 		os.Exit(0)
 	}()
+	var selectedKeys []string = []string{}
+	r.GET("/selected_keys", func(ctx *gin.Context) {
+		buf, err := json.Marshal(selectedKeys)
+		if err != nil {
+			panic(err)
+		}
+		ctx.Writer.Write(buf)
+	})
 	r.POST("/generate", func(ctx *gin.Context) {
 		if done != nil {
 			done()
 			<-cleanupDone
 		}
-		var keysInString []string
-		err := ctx.BindJSON(&keysInString)
+		err := ctx.BindJSON(&selectedKeys)
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println(keysInString)
-		keys := make([][]byte, len(keysInString))
-		for i, key := range keysInString {
+		fmt.Println(selectedKeys)
+		keys := make([][]byte, len(selectedKeys))
+		for i, key := range selectedKeys {
 			keys[i] = []byte(key)
 		}
 		ioutil.WriteFile(tmpFile, generate(db, keys), 0600)
