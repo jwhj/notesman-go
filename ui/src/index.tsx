@@ -13,13 +13,17 @@ const {
 const {
 	PlusOutlined,
 	MinusOutlined,
-	DownOutlined
+	UpOutlined
 } = icons
 const { Header, Content, Footer } = Layout
 const App = () => {
 	const [keysList, setKeysList] = useState<string[]>([])
 	const [selected, setSelected] = useState<boolean[]>([])
 	const handleShortcutRef = useRef<(e: KeyboardEvent) => void>()
+	const reversedKeysList = useMemo(() => {
+		const result = keysList.slice()
+		return result.reverse()
+	}, [keysList])
 	const allSelected = useMemo(() => {
 		let result = true
 		for (const x of selected) result = result && x
@@ -79,8 +83,8 @@ const App = () => {
 					</h1>
 				</Header>
 				<Content style={{ padding: 10 }}>
-					<Row>
-						<Col span={8} offset={8}>
+					<Row style={{ height: '100%' }}>
+						<Col span={8} offset={8} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
 							<Space>
 								<Button onClick={selectAllOrClear}>{allSelected.valueOf() ? '清空' : '全选'}</Button>
 								<Button onClick={generate}>开始</Button>
@@ -92,29 +96,32 @@ const App = () => {
 								<List bordered style={{
 									backgroundColor: 'white',
 								}} >
-									{keysList.map((item, i) => (
-										<List.Item actions={[(
-											<Button shape="circle" icon={<DownOutlined />}
-												onClick={(e: MouseEvent) => {
-													e.stopPropagation()
-													for (let j = i; j < selected.length; j++) selected[j] = true
+									{reversedKeysList.map((item, reversedIndex) => {
+										const i = keysList.length - 1 - reversedIndex
+										return (
+											<List.Item actions={[(
+												<Button shape="circle" icon={<UpOutlined />}
+													onClick={(e: MouseEvent) => {
+														e.stopPropagation()
+														for (let j = i; j < selected.length; j++) selected[j] = true
+														setSelected(selected.slice())
+													}} />
+											)]}
+												onClick={() => {
+													selected[i] = !selected[i]
 													setSelected(selected.slice())
-												}} />
-										)]}
-											onClick={() => {
-												selected[i] = !selected[i]
-												setSelected(selected.slice())
-											}}>
-											<Space>
-												<Button type={selected[i] ? "primary" : undefined} shape="circle" icon={selected[i] ? <PlusOutlined /> : <MinusOutlined />}
-													style={{
-														transition: 'all 0.3s ease'
-													}}
-													onMouseDown={(e: FocusEvent) => e.preventDefault()} />
-												{item}
-											</Space>
-										</List.Item>
-									))}
+												}}>
+												<Space>
+													<Button type={selected[i] ? "primary" : undefined} shape="circle" icon={selected[i] ? <PlusOutlined /> : <MinusOutlined />}
+														style={{
+															transition: 'all 0.3s ease'
+														}}
+														onMouseDown={(e: FocusEvent) => e.preventDefault()} />
+													{item}
+												</Space>
+											</List.Item>
+										)
+									})}
 								</List>
 							</div>
 						</Col>
