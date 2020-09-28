@@ -89,7 +89,9 @@ const App = () => {
 								<Button onClick={selectAllOrClear}>{allSelected.valueOf() ? '清空' : '全选'}</Button>
 								<Button onClick={generate}>开始</Button>
 							</Space>
-							<Divider>这是个列表</Divider>
+							<div>
+								<Divider>这是个列表</Divider>
+							</div>
 							<div style={{
 								overflow: 'auto'
 							}}>
