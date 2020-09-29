@@ -93,10 +93,12 @@ const App = () => {
 								<Divider>这是个列表</Divider>
 							</div>
 							<div style={{
-								overflow: 'auto'
+								overflow: 'hidden'
 							}}>
 								<List bordered style={{
 									backgroundColor: 'white',
+									maxHeight: '100%',
+									overflow: 'auto'
 								}} >
 									{reversedKeysList.map((item, reversedIndex) => {
 										const i = keysList.length - 1 - reversedIndex
