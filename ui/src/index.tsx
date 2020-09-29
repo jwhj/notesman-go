@@ -92,42 +92,42 @@ const App = () => {
 							<div>
 								<Divider>这是个列表</Divider>
 							</div>
-							<div style={{
+							{/* <div style={{
 								overflow: 'hidden'
-							}}>
-								<List bordered style={{
-									backgroundColor: 'white',
-									maxHeight: '100%',
-									overflow: 'auto'
-								}} >
-									{reversedKeysList.map((item, reversedIndex) => {
-										const i = keysList.length - 1 - reversedIndex
-										return (
-											<List.Item actions={[(
-												<Button shape="circle" icon={<UpOutlined />}
-													onClick={(e: MouseEvent) => {
-														e.stopPropagation()
-														for (let j = i; j < selected.length; j++) selected[j] = true
-														setSelected(selected.slice())
-													}} />
-											)]}
-												onClick={() => {
-													selected[i] = !selected[i]
+							}}> */}
+							<List bordered style={{
+								backgroundColor: 'white',
+								// maxHeight: '100%',
+								overflow: 'auto'
+							}} >
+								{reversedKeysList.map((item, reversedIndex) => {
+									const i = keysList.length - 1 - reversedIndex
+									return (
+										<List.Item actions={[(
+											<Button shape="circle" icon={<UpOutlined />}
+												onClick={(e: MouseEvent) => {
+													e.stopPropagation()
+													for (let j = i; j < selected.length; j++) selected[j] = true
 													setSelected(selected.slice())
-												}}>
-												<Space>
-													<Button type={selected[i] ? "primary" : undefined} shape="circle" icon={selected[i] ? <PlusOutlined /> : <MinusOutlined />}
-														style={{
-															transition: 'all 0.3s ease'
-														}}
-														onMouseDown={(e: FocusEvent) => e.preventDefault()} />
-													{item}
-												</Space>
-											</List.Item>
-										)
-									})}
-								</List>
-							</div>
+												}} />
+										)]}
+											onClick={() => {
+												selected[i] = !selected[i]
+												setSelected(selected.slice())
+											}}>
+											<Space>
+												<Button type={selected[i] ? "primary" : undefined} shape="circle" icon={selected[i] ? <PlusOutlined /> : <MinusOutlined />}
+													style={{
+														transition: 'all 0.3s ease'
+													}}
+													onMouseDown={(e: FocusEvent) => e.preventDefault()} />
+												{item}
+											</Space>
+										</List.Item>
+									)
+								})}
+							</List>
+							{/* </div> */}
 						</Col>
 					</Row>
 				</Content>
