@@ -43,9 +43,9 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			ioutil.WriteFile(tmpFile, generate(db, keys[len(keys)-n:]), 0600)
+			ioutil.WriteFile(tmpFile, generate(db, keys[len(keys)-n:]), 0644)
 		} else {
-			ioutil.WriteFile(tmpFile, generate(db, keys(db)), 0600)
+			ioutil.WriteFile(tmpFile, generate(db, keys(db)), 0644)
 		}
 		ctxDone, done := context.WithCancel(context.Background())
 		go func() {

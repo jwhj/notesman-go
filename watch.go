@@ -38,7 +38,7 @@ func watch(db *bolt.DB, ctx context.Context) {
 			panic(err)
 		case <-ctx.Done():
 			log.Println("cleaning up")
-			ioutil.WriteFile(filepath.Join(gitDir, "notes.md"), generate(db, keys(db)), 0600)
+			ioutil.WriteFile(filepath.Join(gitDir, "notes.md"), generate(db, keys(db)), 0644)
 			os.Rename(tmpFile, "tmp.bak")
 			cmd := exec.Command("git", "add", ".")
 			cmd.Dir = gitDir
