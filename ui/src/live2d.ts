@@ -33,7 +33,8 @@ export const renderLive2D = () => {
 	const titleTextList = [
 		'看什么看，记笔记',
 		'你跟上进度了？',
-		'嗯？又开始颓了？'
+		'嗯？又开始颓了？',
+		'你不会听不懂课准备跑路了吧？'
 	]
 	setTimeout(() => {
 		const el: HTMLElement = document.querySelector('.live2d-widget-dialog')
