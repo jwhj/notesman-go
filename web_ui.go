@@ -1,11 +1,12 @@
 package main
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -13,13 +14,24 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
-	"strings"
 	"syscall"
 
 	"github.com/boltdb/bolt"
 	"github.com/gin-gonic/gin"
-	"github.com/posener/tarfs"
+	"github.com/spf13/afero/tarfs"
 )
+
+type httpTarFS struct {
+	fs *tarfs.Fs
+}
+
+func (fs *httpTarFS) Open(name string) (http.File, error) {
+	file, err := fs.fs.Open(name)
+	if err != nil {
+		return nil, err
+	}
+	return file, nil
+}
 
 func bundle() {
 	cmd := exec.Command("esbuild", "--bundle", "--sourcemap", "src/index.tsx", "--outfile=public/bundle.js")
@@ -56,25 +68,35 @@ func serve(db *bolt.DB) {
 			homeDir, _ := os.UserHomeDir()
 			uiDir = filepath.Join(homeDir, "noteman-go")
 		}
-		f, err := tarfs.NewFile(filepath.Join(uiDir, "ui.tar.gz"))
+		// f, err := tarfs.NewFile(filepath.Join(uiDir, "ui.tar.gz"))
+		// if err != nil {
+		// 	panic(err)
+		// }
+		// r.GET("/index/*filepath", func(ctx *gin.Context) {
+		// 	path := ctx.Param("filepath")
+		// 	if path == "/" {
+		// 		path = "/index.html"
+		// 	}
+		// 	err := f.Open(path[1:])
+		// 	if err != nil {
+		// 		fmt.Println(err)
+		// 		if strings.Contains(err.Error(), "file does not exist") {
+		// 			ctx.String(http.StatusNotFound, "404")
+		// 		}
+		// 		return
+		// 	}
+		// 	io.Copy(ctx.Writer, f)
+		// })
+		file, err := os.Open(filepath.Join(uiDir, "ui.tar.gz"))
 		if err != nil {
 			panic(err)
 		}
-		r.GET("/index/*filepath", func(ctx *gin.Context) {
-			path := ctx.Param("filepath")
-			if path == "/" {
-				path = "/index.html"
-			}
-			err := f.Open(path[1:])
-			if err != nil {
-				fmt.Println(err)
-				if strings.Contains(err.Error(), "file does not exist") {
-					ctx.String(http.StatusNotFound, "404")
-				}
-				return
-			}
-			io.Copy(ctx.Writer, f)
-		})
+		gzipReader, err := gzip.NewReader(file)
+		if err != nil {
+			panic(err)
+		}
+		fs := tarfs.New(tar.NewReader(gzipReader))
+		r.StaticFS("/index/", &httpTarFS{fs})
 	}
 	api := r.Group("/api")
 	setupAPI(db, api)
