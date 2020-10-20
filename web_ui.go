@@ -22,11 +22,11 @@ import (
 )
 
 type httpTarFS struct {
-	fs *tarfs.Fs
+	*tarfs.Fs
 }
 
 func (fs *httpTarFS) Open(name string) (http.File, error) {
-	file, err := fs.fs.Open(name)
+	file, err := fs.Fs.Open(name)
 	if err != nil {
 		return nil, err
 	}
