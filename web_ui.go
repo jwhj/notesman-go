@@ -18,20 +18,9 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/afero"
 	"github.com/spf13/afero/tarfs"
 )
-
-type httpTarFS struct {
-	*tarfs.Fs
-}
-
-func (fs *httpTarFS) Open(name string) (http.File, error) {
-	file, err := fs.Fs.Open(name)
-	if err != nil {
-		return nil, err
-	}
-	return file, nil
-}
 
 func bundle() {
 	cmd := exec.Command("esbuild", "--bundle", "--sourcemap", "src/index.tsx", "--outfile=public/bundle.js")
@@ -96,7 +85,7 @@ func serve(db *bolt.DB) {
 			panic(err)
 		}
 		fs := tarfs.New(tar.NewReader(gzipReader))
-		r.StaticFS("/index/", &httpTarFS{fs})
+		r.StaticFS("/index/", afero.NewHttpFs(fs))
 	}
 	api := r.Group("/api")
 	setupAPI(db, api)
