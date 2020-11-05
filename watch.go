@@ -23,6 +23,7 @@ func watch(db *bolt.DB, ctx context.Context) {
 	if err != nil {
 		panic(err)
 	}
+	log.Printf("start watching %s", tmpFile)
 	for {
 		select {
 		case event := <-watcher.Events:
