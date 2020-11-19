@@ -32,6 +32,7 @@ func update(db *bolt.DB, content string) {
 	var buf bytes.Buffer
 	for _, line := range lines {
 		if line == emptyComment {
+			buf.WriteString(eoln)
 			break
 		}
 		if strings.HasPrefix(line, "# ") {
@@ -78,13 +79,18 @@ func keys(db *bolt.DB) [][]byte {
 }
 func generate(db *bolt.DB, keys [][]byte) []byte {
 	var buf bytes.Buffer
-	for _, key := range keys {
+	L := len(keys)
+	for index, key := range keys {
 		db.View(func(tx *bolt.Tx) error {
 			b := tx.Bucket([]byte("notes"))
 			buf.WriteString("# ")
 			buf.Write(key)
 			buf.WriteString(eoln)
-			buf.Write(b.Get(key))
+			content := b.Get(key)
+			if index == L-1 {
+				content = content[:len(content)-len(eoln)]
+			}
+			buf.Write(content)
 			return nil
 		})
 	}
