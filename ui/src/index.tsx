@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import axios from 'axios'
 import { renderLive2D } from './live2d'
-const {
+import {
 	message,
 	Layout,
 	Row, Col,
@@ -9,7 +9,7 @@ const {
 	List,
 	Button,
 	Divider
-} = antd
+} from 'antd'
 const {
 	PlusOutlined,
 	MinusOutlined,
@@ -105,7 +105,7 @@ const App = () => {
 									return (
 										<List.Item actions={[(
 											<Button shape="circle" icon={<UpOutlined />}
-												onClick={(e: MouseEvent) => {
+												onClick={e => {
 													e.stopPropagation()
 													for (let j = i; j < selected.length; j++) selected[j] = true
 													setSelected(selected.slice())
@@ -120,7 +120,7 @@ const App = () => {
 													style={{
 														transition: 'all 0.3s ease'
 													}}
-													onMouseDown={(e: FocusEvent) => e.preventDefault()} />
+													onMouseDown={e => e.preventDefault()} />
 												{item}
 											</Space>
 										</List.Item>
