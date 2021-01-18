@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
+import ReactDOM from 'react-dom'
+import { makeObservable, observable, computed, action } from 'mobx'
+import { observer } from 'mobx-react-lite'
 import axios from 'axios'
 import { renderLive2D } from './live2d'
 import {
@@ -10,70 +13,70 @@ import {
 	Button,
 	Divider
 } from 'antd'
-const {
+import {
 	PlusOutlined,
 	MinusOutlined,
 	UpOutlined
-} = icons
+} from '@ant-design/icons'
 const { Header, Content, Footer } = Layout
-const App = () => {
-	const [keysList, setKeysList] = useState<string[]>([])
-	const [selected, setSelected] = useState<boolean[]>([])
-	const handleShortcutRef = useRef<(e: KeyboardEvent) => void>()
-	const reversedKeysList = useMemo(() => {
-		const result = keysList.slice()
-		return result.reverse()
-	}, [keysList])
-	const allSelected = useMemo(() => {
+class KeysStore {
+	keysList: string[] = []
+	selected: Map<string, boolean> = new Map()
+	constructor() {
+		makeObservable(this, {
+			keysList: observable,
+			selected: observable,
+			allSelected: computed,
+			generate: action.bound,
+			selectAllOrClear: action.bound,
+			handleShortcut: action.bound
+		})
+	}
+	get allSelected() {
 		let result = true
-		for (const x of selected) result = result && x
+		for (const key of this.keysList)
+			result = result && this.selected.get(key)
 		return result
-	}, [selected])
+	}
+	selectAllOrClear() {
+		const target = !this.allSelected
+		for (const key of this.keysList)
+			this.selected.set(key, target)
+	}
+	generate() {
+		const selectedKeys = this.keysList.filter(key => this.selected.get(key))
+		axios.post('/api/generate', selectedKeys).then(() => {
+			message.success('我好了')
+		})
+	}
+	handleShortcut(e: KeyboardEvent) {
+		switch (e.key) {
+			case 'a':
+				this.selectAllOrClear()
+				break
+			case 'g':
+				this.generate()
+				break
+		}
+	}
+}
+const keysStore = new KeysStore()
+const App = observer(() => {
 	useEffect(() => {
 		Promise.all([
 			axios.get('/api/keys'),
 			axios.get('/api/selected_keys')
-		]).then(([result1, result2]) => {
-			const tmpList: string[] = result1.data.slice()
-			setKeysList(tmpList)
-			const selected: boolean[] = Array(tmpList.length).fill(false)
-			const selectedKeys: string[] = result2.data
-			let i = 0
-			for (let j = 0; j < selectedKeys.length; j++) {
-				while (i < tmpList.length && tmpList[i] < selectedKeys[j])
-					i++
-				if (i < tmpList.length && tmpList[i] == selectedKeys[j])
-					selected[i] = true
-			}
-			setSelected(selected)
-		})
-		const handleShortcut = (e: KeyboardEvent) => {
-			handleShortcutRef.current(e)
-		}
-		addEventListener('keydown', handleShortcut)
+		]).then(action(([result1, result2]) => {
+			keysStore.keysList = result1.data
+			const selected: string[] = result2.data
+			for (const key of selected)
+				keysStore.selected.set(key, true)
+		}))
+		addEventListener('keydown', keysStore.handleShortcut)
 		return () => {
-			removeEventListener('keydown', handleShortcut)
+			removeEventListener('keydown', keysStore.handleShortcut)
 		}
 	}, [])
-	handleShortcutRef.current = (e: KeyboardEvent) => {
-		switch (e.key) {
-			case 'a':
-				selectAllOrClear()
-				break
-			case 'g':
-				generate()
-				break
-		}
-	}
-	const selectAllOrClear = () => {
-		setSelected(Array(selected.length).fill(!allSelected.valueOf()))
-	}
-	const generate = () => {
-		const selectedKeys = keysList.filter((key, i) => selected[i])
-		axios.post('/api/generate', selectedKeys).then(res => {
-			message.success('我好了')
-		})
-	}
 	return (
 		<React.Fragment>
 			<Layout style={{ height: '100%' }}>
@@ -86,8 +89,8 @@ const App = () => {
 					<Row style={{ height: '100%' }}>
 						<Col span={8} offset={8} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
 							<Space>
-								<Button onClick={selectAllOrClear}>{allSelected.valueOf() ? '清空' : '全选'}</Button>
-								<Button onClick={generate}>开始</Button>
+								<Button onClick={keysStore.selectAllOrClear}>{keysStore.allSelected ? '清空' : '全选'}</Button>
+								<Button onClick={keysStore.generate}>开始</Button>
 							</Space>
 							<div>
 								<Divider>这是个列表</Divider>
@@ -100,23 +103,27 @@ const App = () => {
 								// maxHeight: '100%',
 								overflow: 'auto'
 							}} >
-								{reversedKeysList.map((item, reversedIndex) => {
-									const i = keysList.length - 1 - reversedIndex
+								{keysStore.keysList.slice().reverse().map((item, reversedIndex) => {
+									const i = keysStore.keysList.length - 1 - reversedIndex
+									const key = keysStore.keysList[i]
+									const selected = keysStore.selected.get(key)
 									return (
-										<List.Item actions={[(
+										<List.Item key={key} actions={[(
 											<Button shape="circle" icon={<UpOutlined />}
-												onClick={e => {
+												onClick={action(e => {
 													e.stopPropagation()
-													for (let j = i; j < selected.length; j++) selected[j] = true
-													setSelected(selected.slice())
-												}} />
+													// for (let j = i; j < selected.length; j++) selected[j] = true
+													// setSelected(selected.slice())
+													for (let j = i; j < keysStore.keysList.length; j++)
+														keysStore.selected.set(keysStore.keysList[j], true)
+												})} />
 										)]}
-											onClick={() => {
-												selected[i] = !selected[i]
-												setSelected(selected.slice())
-											}}>
+											onClick={action(() => {
+												keysStore.selected.set(key, !selected)
+											})}>
 											<Space>
-												<Button type={selected[i] ? "primary" : undefined} shape="circle" icon={selected[i] ? <PlusOutlined /> : <MinusOutlined />}
+												<Button type={selected ? "primary" : undefined} shape="circle"
+													icon={selected ? <PlusOutlined /> : <MinusOutlined />}
 													style={{
 														transition: 'all 0.3s ease'
 													}}
@@ -135,9 +142,9 @@ const App = () => {
 					随便写几个字，反正不能空着
 				</Footer>
 			</Layout>
-		</React.Fragment>
+		</React.Fragment >
 	)
-}
+})
 ReactDOM.render(
 	<App />,
 	document.querySelector('#app')

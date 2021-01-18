@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -23,8 +24,18 @@ import (
 )
 
 func bundle() {
-	cmd := exec.Command("esbuild", "--bundle", "--sourcemap", "src/index.tsx", "--outfile=public/bundle.js")
+	cmd := exec.Command("esbuild", "--bundle", "--sourcemap", "src/index.tsx", "--outfile=public/bundle.js", "--define:process.env.NODE_ENV=\"'development'\"")
 	cmd.Dir = "ui"
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		panic(err)
+	}
+	go io.Copy(os.Stdout, stdout)
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		panic(err)
+	}
+	go io.Copy(os.Stderr, stderr)
 	cmd.Run()
 }
 func serve(db *bolt.DB) {
