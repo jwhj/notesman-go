@@ -39,18 +39,18 @@ class KeysStore {
 			result = result && this.selected.get(key)
 		return result
 	}
-	@action.bound selectAllOrClear() {
+	selectAllOrClear = action(() => {
 		const target = !this.allSelected
 		for (const key of this.keysList)
 			this.selected.set(key, target)
-	}
-	@action.bound generate() {
+	})
+	generate = () => {
 		const selectedKeys = this.keysList.filter(key => this.selected.get(key))
 		axios.post('/api/generate', selectedKeys).then(() => {
 			message.success('我好了')
 		})
 	}
-	@action.bound handleShortcut(e: KeyboardEvent) {
+	handleShortcut = (e: KeyboardEvent) => {
 		switch (e.key) {
 			case 'a':
 				this.selectAllOrClear()
@@ -74,9 +74,6 @@ const App = observer(() => {
 				keysStore.selected.set(key, true)
 		}))
 		addEventListener('keydown', keysStore.handleShortcut)
-		return () => {
-			removeEventListener('keydown', keysStore.handleShortcut)
-		}
 	}, [])
 	return (
 		<React.Fragment>
