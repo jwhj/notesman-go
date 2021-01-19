@@ -66,7 +66,7 @@ func serve(db *bolt.DB) {
 			uiDir = filepath.Join(appdata, "notesman-go")
 		} else {
 			homeDir, _ := os.UserHomeDir()
-			uiDir = filepath.Join(homeDir, "noteman-go")
+			uiDir = filepath.Join(homeDir, "notesman-go")
 		}
 		// f, err := tarfs.NewFile(filepath.Join(uiDir, "ui.tar.gz"))
 		// if err != nil {
