@@ -20,36 +20,37 @@ import {
 } from '@ant-design/icons'
 const { Header, Content, Footer } = Layout
 class KeysStore {
-	keysList: string[] = []
-	selected: Map<string, boolean> = new Map()
+	@observable keysList: string[] = []
+	@observable selected: Map<string, boolean> = new Map()
 	constructor() {
-		makeObservable(this, {
-			keysList: observable,
-			selected: observable,
-			allSelected: computed,
-			generate: action.bound,
-			selectAllOrClear: action.bound,
-			handleShortcut: action.bound
-		})
+		// makeObservable(this, {
+		// 	keysList: observable,
+		// 	selected: observable,
+		// 	allSelected: computed,
+		// 	generate: action.bound,
+		// 	selectAllOrClear: action.bound,
+		// 	handleShortcut: action.bound
+		// })
+		makeObservable(this)
 	}
-	get allSelected() {
+	@computed get allSelected() {
 		let result = true
 		for (const key of this.keysList)
 			result = result && this.selected.get(key)
 		return result
 	}
-	selectAllOrClear() {
+	@action.bound selectAllOrClear() {
 		const target = !this.allSelected
 		for (const key of this.keysList)
 			this.selected.set(key, target)
 	}
-	generate() {
+	@action.bound generate() {
 		const selectedKeys = this.keysList.filter(key => this.selected.get(key))
 		axios.post('/api/generate', selectedKeys).then(() => {
 			message.success('我好了')
 		})
 	}
-	handleShortcut(e: KeyboardEvent) {
+	@action.bound handleShortcut(e: KeyboardEvent) {
 		switch (e.key) {
 			case 'a':
 				this.selectAllOrClear()
