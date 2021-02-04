@@ -62,6 +62,48 @@ class KeysStore {
 	}
 }
 const keysStore = new KeysStore()
+
+const KeysView = observer(() => {
+	return (
+		<List bordered style={{
+			backgroundColor: 'white',
+			// maxHeight: '100%',
+			overflow: 'auto'
+		}} >
+			{keysStore.keysList.slice().reverse().map((item, reversedIndex) => {
+				const i = keysStore.keysList.length - 1 - reversedIndex
+				const key = keysStore.keysList[i]
+				const selected = keysStore.selected.get(key)
+				return (
+					<List.Item key={key} actions={[(
+						<Button shape="circle" icon={<UpOutlined />}
+							onClick={action(e => {
+								e.stopPropagation()
+								// for (let j = i; j < selected.length; j++) selected[j] = true
+								// setSelected(selected.slice())
+								for (let j = i; j < keysStore.keysList.length; j++)
+									keysStore.selected.set(keysStore.keysList[j], true)
+							})} />
+					)]}
+						onClick={action(() => {
+							keysStore.selected.set(key, !selected)
+						})}>
+						<Space>
+							<Button type={selected ? "primary" : undefined} shape="circle"
+								icon={selected ? <PlusOutlined /> : <MinusOutlined />}
+								style={{
+									transition: 'all 0.3s ease'
+								}}
+								onMouseDown={e => e.preventDefault()} />
+							{item}
+						</Space>
+					</List.Item>
+				)
+			})}
+		</List>
+	)
+})
+
 const App = observer(() => {
 	useEffect(() => {
 		Promise.all([
@@ -96,42 +138,7 @@ const App = observer(() => {
 							{/* <div style={{
 								overflow: 'hidden'
 							}}> */}
-							<List bordered style={{
-								backgroundColor: 'white',
-								// maxHeight: '100%',
-								overflow: 'auto'
-							}} >
-								{keysStore.keysList.slice().reverse().map((item, reversedIndex) => {
-									const i = keysStore.keysList.length - 1 - reversedIndex
-									const key = keysStore.keysList[i]
-									const selected = keysStore.selected.get(key)
-									return (
-										<List.Item key={key} actions={[(
-											<Button shape="circle" icon={<UpOutlined />}
-												onClick={action(e => {
-													e.stopPropagation()
-													// for (let j = i; j < selected.length; j++) selected[j] = true
-													// setSelected(selected.slice())
-													for (let j = i; j < keysStore.keysList.length; j++)
-														keysStore.selected.set(keysStore.keysList[j], true)
-												})} />
-										)]}
-											onClick={action(() => {
-												keysStore.selected.set(key, !selected)
-											})}>
-											<Space>
-												<Button type={selected ? "primary" : undefined} shape="circle"
-													icon={selected ? <PlusOutlined /> : <MinusOutlined />}
-													style={{
-														transition: 'all 0.3s ease'
-													}}
-													onMouseDown={e => e.preventDefault()} />
-												{item}
-											</Space>
-										</List.Item>
-									)
-								})}
-							</List>
+							<KeysView />
 							{/* </div> */}
 						</Col>
 					</Row>
